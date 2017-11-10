@@ -1,10 +1,10 @@
 all:
 
-KALDI_ROOT?=/home/tanel/tools/kaldi-trunk
+KALDI_ROOT?=/opt/kaldi
 
 ifeq ("$(wildcard $(KALDI_ROOT)/src/kaldi.mk)","")
 $(error Cannot find Kaldi's makefile $(KALDI_ROOT)/src/kaldi.mk. \
-Specify Kaldi's root directory using KALDI_ROOT when issuing make, e.g.: `KALDI_ROOT=/home/tanel/tools/kaldi-trunk make` )
+Specify Kaldi's root directory using KALDI_ROOT when issuing make, e.g.: `KALDI_ROOT=/opt/kaldi make` )
 endif
 
 include $(KALDI_ROOT)/src/kaldi.mk
@@ -59,7 +59,7 @@ endif
 $(LIBFILE): $(OBJFILES)
 	$(CXX) -shared -DPIC -o $(LIBFILE) -L$(KALDILIBDIR) $(EXTRA_LDLIBS) $(LDLIBS) $(LDFLAGS) \
 	  $(OBJFILES)
- 
+
 kaldimarshal.h: kaldimarshal.list
 	glib-genmarshal --header --prefix=kaldi_marshal kaldimarshal.list > kaldimarshal.h.tmp
 	mv kaldimarshal.h.tmp kaldimarshal.h
@@ -69,13 +69,13 @@ kaldimarshal.cc: kaldimarshal.list kaldimarshal.h
 	echo "#include \"kaldimarshal.h\"" >> kaldimarshal.c.tmp
 	glib-genmarshal --body --prefix=kaldi_marshal kaldimarshal.list >> kaldimarshal.c.tmp
 	mv kaldimarshal.c.tmp kaldimarshal.cc
- 
-clean: 
+
+clean:
 	-rm -f *.o *.a $(TESTFILES) $(BINFILES) kaldimarshal.h kaldimarshal.cc
- 
+
 #
-depend:  kaldimarshal.h kaldimarshal.cc 
-	-$(CXX) -M $(CXXFLAGS) *.cc > .depend.mk  
+depend:  kaldimarshal.h kaldimarshal.cc
+	-$(CXX) -M $(CXXFLAGS) *.cc > .depend.mk
 
 -include .depend.mk
 

@@ -116,7 +116,7 @@ enum {
 #define DEFAULT_CHUNK_LENGTH_IN_SECS  0.05
 #define DEFAULT_TRACEBACK_PERIOD_IN_SECS  0.5
 #define DEFAULT_USE_THREADED_DECODER false
-#define DEFAULT_NUM_NBEST 1
+#define DEFAULT_NUM_NBEST 10
 #define DEFAULT_NUM_PHONE_ALIGNMENT 1
 #define DEFAULT_MIN_WORDS_FOR_IVECTOR 2
 
@@ -918,7 +918,7 @@ static void gst_kaldinnet2onlinedecoder_get_property(GObject * object,
 }
 
 static std::vector<PhoneAlignmentInfo> gst_kaldinnet2onlinedecoder_phone_alignment(
-    Gstkaldinnet2onlinedecoder * filter, const std::vector<int32>& alignment, 
+    Gstkaldinnet2onlinedecoder * filter, const std::vector<int32>& alignment,
     const CompactLattice &clat) {
 
   std::vector<PhoneAlignmentInfo> result;
@@ -940,14 +940,14 @@ static std::vector<PhoneAlignmentInfo> gst_kaldinnet2onlinedecoder_phone_alignme
   ConvertLattice(clat, &lat);
   ConvertLatticeToPhones(*filter->trans_model, &lat);
   CompactLattice phone_clat;
-  ConvertLattice(lat, &phone_clat);  
+  ConvertLattice(lat, &phone_clat);
   MinimumBayesRiskOptions mbr_opts;
   mbr_opts.decode_mbr = false; // we just want confidences
-  mbr_opts.print_silence = false; 
+  mbr_opts.print_silence = false;
   MinimumBayesRisk *mbr = new MinimumBayesRisk(phone_clat, phones, mbr_opts);
   std::vector<BaseFloat> confidences = mbr->GetOneBestConfidences();
   delete mbr;
-  
+
 
   int32 current_start_frame = 0;
 
@@ -970,7 +970,7 @@ static std::vector<PhoneAlignmentInfo> gst_kaldinnet2onlinedecoder_phone_alignme
 }
 
 static std::vector<WordAlignmentInfo>  gst_kaldinnet2onlinedecoder_word_alignment(
-    Gstkaldinnet2onlinedecoder * filter, const Lattice &lat, 
+    Gstkaldinnet2onlinedecoder * filter, const Lattice &lat,
     const std::vector<BaseFloat> &confidences) {
   std::vector<WordAlignmentInfo> result;
   std::vector<int32> words, times, lengths;
@@ -1093,7 +1093,7 @@ static std::vector<NBestResult> gst_kaldinnet2onlinedecoder_nbest_results(
     if (filter->word_boundary_info) {
       MinimumBayesRiskOptions mbr_opts;
       mbr_opts.decode_mbr = false; // we just want confidences
-      mbr_opts.print_silence = false; 
+      mbr_opts.print_silence = false;
       MinimumBayesRisk *mbr = new MinimumBayesRisk(clat, words, mbr_opts);
       std::vector<BaseFloat> confidences = mbr->GetOneBestConfidences();
       delete mbr;
@@ -1431,10 +1431,10 @@ static void gst_kaldinnet2onlinedecoder_unthreaded_decode_segment(Gstkaldinnet2o
       feature_pipeline.InputFinished();
     }
 
-    if (silence_weighting.Active() && 
+    if (silence_weighting.Active() &&
         feature_pipeline.IvectorFeature() != NULL) {
       silence_weighting.ComputeCurrentTraceback(decoder.Decoder());
-      silence_weighting.GetDeltaWeights(feature_pipeline.IvectorFeature()->NumFramesReady(), 
+      silence_weighting.GetDeltaWeights(feature_pipeline.IvectorFeature()->NumFramesReady(),
                                         &delta_weights);
       feature_pipeline.IvectorFeature()->UpdateFrameWeights(delta_weights);
     }
@@ -1498,7 +1498,7 @@ static void gst_kaldinnet2onlinedecoder_nnet3_unthreaded_decode_segment(Gstkaldi
   OnlineNnet2FeaturePipeline feature_pipeline(*(filter->feature_info));
   feature_pipeline.SetAdaptationState(*(filter->adaptation_state));
   SingleUtteranceNnet3Decoder decoder(*(filter->decoder_opts),
-                                      *(filter->trans_model), 
+                                      *(filter->trans_model),
                                       *(filter->decodable_info_nnet3),
                                       *(filter->decode_fst),
                                       &feature_pipeline);
@@ -1519,10 +1519,10 @@ static void gst_kaldinnet2onlinedecoder_nnet3_unthreaded_decode_segment(Gstkaldi
       feature_pipeline.InputFinished();
     }
 
-    if (silence_weighting.Active() && 
+    if (silence_weighting.Active() &&
         feature_pipeline.IvectorFeature() != NULL) {
       silence_weighting.ComputeCurrentTraceback(decoder.Decoder());
-      silence_weighting.GetDeltaWeights(feature_pipeline.IvectorFeature()->NumFramesReady(), 
+      silence_weighting.GetDeltaWeights(feature_pipeline.IvectorFeature()->NumFramesReady(),
                                         &delta_weights);
       feature_pipeline.IvectorFeature()->UpdateFrameWeights(delta_weights);
     }
@@ -1875,7 +1875,7 @@ gst_kaldinnet2onlinedecoder_load_model(Gstkaldinnet2onlinedecoder * filter,
           // objects.  It takes a pointer to am_nnet because if it has iVectors it has
           // to modify the nnet to accept iVectors at intervals.
           filter->decodable_info_nnet3 = new nnet3::DecodableNnetSimpleLoopedInfo(*(filter->nnet3_decodable_opts),
-                                                                                  filter->am_nnet3);          
+                                                                                  filter->am_nnet3);
         }
 
         // Only change the parameter if it has worked correctly
