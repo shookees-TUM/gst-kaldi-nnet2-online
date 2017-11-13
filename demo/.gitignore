@@ -1,0 +1,15 @@
+final.mdl
+HCLG.fst
+phones.txt
+word_boundary.int
+words.txt
+ivector_extractor.conf
+ivector_extractor.fixed.conf
+mfcc.conf
+online_cmvn.conf
+online_nnet2_decoding.conf
+splice.conf
+final.dubm
+final.ie
+final.mat
+global_cmvn.stats
